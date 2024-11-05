@@ -24,7 +24,6 @@ class TestRoutes(TestCase):
 
     def test_pages_availability(self):
         routes = [
-            # (name, args, client, expected_status)
             ('notes:home', None, self.client, HTTPStatus.OK),
             ('users:signup', None, self.client, HTTPStatus.OK),
             ('users:login', None, self.client, HTTPStatus.OK),
@@ -35,9 +34,12 @@ class TestRoutes(TestCase):
             ('notes:detail', (self.note.slug,), self.author, HTTPStatus.OK),
             ('notes:edit', (self.note.slug,), self.author, HTTPStatus.OK),
             ('notes:delete', (self.note.slug,), self.author, HTTPStatus.OK),
-            ('notes:detail', (self.note.slug,), self.other_user, HTTPStatus.NOT_FOUND),
-            ('notes:edit', (self.note.slug,), self.other_user, HTTPStatus.NOT_FOUND),
-            ('notes:delete', (self.note.slug,), self.other_user, HTTPStatus.NOT_FOUND),
+            ('notes:detail', (self.note.slug,),
+             self.other_user, HTTPStatus.NOT_FOUND),
+            ('notes:edit', (self.note.slug,),
+             self.other_user, HTTPStatus.NOT_FOUND),
+            ('notes:delete', (self.note.slug,),
+             self.other_user, HTTPStatus.NOT_FOUND),
         ]
 
         for name, args, user, expected_status in routes:

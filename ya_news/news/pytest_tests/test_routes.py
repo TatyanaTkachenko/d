@@ -20,11 +20,11 @@ from django.urls import reverse
         ('news:delete', 'author_client', HTTPStatus.OK, True),
     ]
 )
-def test_status_codes(request, name, client_fixture, expected_status, pk_required, comment, news):
-    # Получаем клиента из фикстуры
+def test_status_codes(request, name, client_fixture, expected_status,
+                      pk_required, comment, news):
     client = request.getfixturevalue(client_fixture)
-    # Определяем значение pk в зависимости от маршрута
-    kwargs = {'pk': news.pk if name == 'news:detail' else comment.pk} if pk_required else {}
+    kwargs = {'pk': news.pk if name
+              == 'news:detail' else comment.pk} if pk_required else {}
     url = reverse(name, kwargs=kwargs)
     response = client.get(url)
     assert response.status_code == expected_status

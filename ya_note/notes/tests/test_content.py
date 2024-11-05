@@ -43,6 +43,5 @@ class TestContent(TestCase):
             with self.subTest(user=self.author, name=name):
                 url = reverse(name, args=args)
                 response = self.client.get(url)
-                # Проверка, что форма присутствует и её тип соответствует ожидаемому
                 self.assertIn('form', response.context)
                 self.assertIsInstance(response.context['form'], NoteForm)
