@@ -23,8 +23,8 @@ def test_comment_by_auth_user(author, news, author_client):
     url = reverse('news:detail', kwargs={'pk': news.pk})
     author_client.post(url, data=new_comment_text)
     assert count_comments_before + 1 == Comment.objects.count()
-
-    comment = Comment.objects.filter(news=news, author=author).latest('created')
+    comment = Comment.objects.filter(
+        news=news, author=author).latest('created')
     assert comment.text == new_comment_text['text']
     assert comment.news == news
     assert comment.author == author
