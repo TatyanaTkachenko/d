@@ -24,7 +24,9 @@ def test_comment_by_auth_user(author, news, author_client):
     author_client.post(url, data=new_comment_text)
     assert count_comments_before + 1 == Comment.objects.count()
     comment = Comment.objects.filter(
-        news=news, author=author).latest('created')
+        news=news, author=author).latest('created') 
+    # строка 27 См аналогичный момент в unittest, нет гарантии, 
+    # что выбрали правильно. Вьюха может искажать данные перед сохранением в БД.
     assert comment.text == new_comment_text['text']
     assert comment.news == news
     assert comment.author == author
@@ -49,7 +51,7 @@ def test_edit_comment_by_author(author_client, comment, news):
     response = author_client.post(comment_url, data=edit_comment)
     assertRedirects(response, news_url + '#comments')
     comment.refresh_from_db()
-    assert comment.text == edit_comment['text']
+    assert comment.text == edit_comment['text'] # Нужно проверить все атрибуты комментария
 
 
 @pytest.mark.django_db
@@ -61,18 +63,18 @@ def test_delete_comment_by_author(author_client, comment, news):
     response = author_client.delete(comment_url)
     assertRedirects(response, news_url + '#comments')
     assert count_comments_before - 1 == Comment.objects.count()
-
+# строка 65 Нужно проверить точнее, нам известен идентификатор комментария, который хотели удалить
 
 @pytest.mark.django_db
 def test_edit_comment_by_another_user(admin_client, comment):
-    original_text = comment.text
+    original_text = comment.text # Лишняя переменная
     new_comment = {'text': 'Новый текст'}
     comment_url = reverse('news:edit', kwargs={'pk': comment.pk})
 
     response = admin_client.post(comment_url, data=new_comment)
     assert response.status_code == HTTPStatus.NOT_FOUND
     comment.refresh_from_db()
-    assert comment.text == original_text
+    assert comment.text == original_text # Нужно проверить все атрибуты комментария
 
 
 @pytest.mark.django_db
@@ -83,3 +85,4 @@ def test_delete_comment_by_another_user(admin_client, comment):
     response = admin_client.delete(comment_url)
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert count_comments_before == Comment.objects.count()
+# строка 87 Нужно проверить точнее, нам известен идентификатор комментария, который хотели удалить

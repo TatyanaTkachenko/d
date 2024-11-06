@@ -25,6 +25,9 @@ def test_status_codes(request, name, client_fixture, expected_status,
     client = request.getfixturevalue(client_fixture)
     kwargs = {'pk': news.pk if name
               == 'news:detail' else comment.pk} if pk_required else {}
+    #строка 26 Нужно избавиться от ветвлений, 
+    # удачно reverse вынести в фикстуры, 
+    # тогда их можно будет использовать в параметрах.
     url = reverse(name, kwargs=kwargs)
     response = client.get(url)
     assert response.status_code == expected_status

@@ -50,7 +50,16 @@ class TestNoteOperations(TestCase):
         notes_count_after = Note.objects.count()
         self.assertEqual(notes_count_after, notes_count_before + 1)
 
-        new_note = Note.objects.get(slug='new-slug')
+        new_note = Note.objects.get(slug='new-slug') 
+#строка 53 Недопустимо сравнивать с литералом
+#Нет гарантии, что выбрали правильно, перед сохранением
+#  в БД вью функция может искажать данные
+# Вариант 1. Создать условия, при которых ДО 
+# отправки формы в БД гарантированно пусто, нет ни одной заметки
+# Вариант 2. Узнать какие в БД есть заметки ДО отправки формы, 
+# выбрать из БД все заметки ПОСЛЕ отправки формы, из <все заметки>
+#  вычесть <заметки ДО>, если в результате осталась одна заметка, 
+# это то что мы ищем.
         self.assertEqual(new_note.title, form_data['title'])
         self.assertEqual(new_note.text, form_data['text'])
         self.assertEqual(new_note.author, self.author)
@@ -70,24 +79,27 @@ class TestNoteOperations(TestCase):
         self.assertRedirects(response, self.success_url)
 
         new_note = Note.objects.get(title=form_data['title'])
+    # строка 81 аналогично строке 53 замечание
         expected_slug = slugify(form_data['title'])
+    #строка 83 Если заголовок будет длиннее 100 символов, тест провалится. 
+    # Обрати внимание как формируется слаг в модели.
         self.assertEqual(new_note.slug, expected_slug)
 
     def test_delete_note_by_author(self):
-        notes_count_before = Note.objects.count()
+        notes_count_before = Note.objects.count()   # строка 89 Избыточно
         response = self.author_client.post(self.delete_url)
         self.assertRedirects(response, self.success_url)
         self.assertFalse(Note.objects.filter(pk=self.note.pk).exists())
-        notes_count_after = Note.objects.count()
-        self.assertEqual(notes_count_after, notes_count_before - 1)
-
+        notes_count_after = Note.objects.count()  # строка 93 Избыточно        
+        self.assertEqual(notes_count_after, notes_count_before - 1)  # строка 94 Избыточно
+    
     def test_delete_note_by_another_user(self):
-        notes_count_before = Note.objects.count()
+        notes_count_before = Note.objects.count()   # строка 97 Избыточно
         response = self.other_user_client.delete(self.delete_url)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.assertTrue(Note.objects.filter(pk=self.note.pk).exists())
-        notes_count_after = Note.objects.count()
-        self.assertEqual(notes_count_after, notes_count_before)
+        notes_count_after = Note.objects.count()   # строка 101 Избыточно
+        self.assertEqual(notes_count_after, notes_count_before)  # строка 102 Избыточно
 
     def test_edit_note_by_author(self):
         new_data = {
@@ -98,6 +110,8 @@ class TestNoteOperations(TestCase):
         response = self.author_client.post(self.edit_url, data=new_data)
         self.assertRedirects(response, self.success_url)
         self.note.refresh_from_db()
+        #  строка 112 Нужно ещё проверить, что автор заметки не изменился,
+        #  т.е. остался таким же каким и был до редактирования
         self.assertEqual(self.note.title, new_data['title'])
         self.assertEqual(self.note.text, new_data['text'])
         self.assertEqual(self.note.slug, new_data['slug'])
@@ -111,7 +125,13 @@ class TestNoteOperations(TestCase):
         response = self.other_user_client.post(self.edit_url, data=new_data)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.note.refresh_from_db()
+        #  строка 128 Нужно ещё проверить, что автор заметки не изменился,
+        #  т.е. остался таким же каким и был до редактирования
         self.assertEqual(self.note.title, self.NOTE_TITLE)
+        # строка 130 Нужно явно проверить, что заголовок не изменился. 
+        # Удачно отказаться от refresh_from_db в 128 строке 
+        # и использовать get, так у нас будет две версии заметки, 
+        # версия ДО и версия ПОСЛЕ, можно явно сравнивать их атрибуты.
         self.assertEqual(self.note.text, self.NOTE_TEXT)
 
     def test_slug_unique(self):

@@ -44,8 +44,11 @@ class TestRoutes(TestCase):
 
         for name, args, user, expected_status in routes:
             if user != self.client:
+            # строка 46 Использование ветвлений внутри теста плохая практика, 
+            # нужно в routes сразу хранить клиент, всех необходимых
+            #  можно создать в setUpTestData
                 self.client.force_login(user)
-            url = reverse(name, args=args)
+            url = reverse(name, args=args) # Удачно в routes сразу хранить reverse
             with self.subTest(name=name, user=user):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, expected_status)
@@ -62,7 +65,7 @@ class TestRoutes(TestCase):
         )
         for name, args in urls:
             with self.subTest(name=name):
-                url = reverse(name, args=args)
+                url = reverse(name, args=args) # Удачно в routes сразу хранить reverse
                 redirect_url = f'{login_url}?next={url}'
                 response = self.client.get(url)
                 self.assertRedirects(response, redirect_url)
